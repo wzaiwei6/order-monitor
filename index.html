@@ -8,11 +8,17 @@
     body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 12px; background: #0b1220; color: #e6e9ef; }
     h1 { font-size: 20px; margin: 0 0 6px; }
     .card { background: #121a2a; border: 1px solid #1d2a44; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-    .card-stats { min-height: 320px; }
-    .card-windows { min-height: 480px; }
+    .card-stats { min-height: 260px; }
+    .card-windows { min-height: 380px; }
     @media (max-width: 768px) {
-      .card-stats { min-height: 500px; }
-      .card-windows { min-height: 950px; }
+      body { margin: 6px; }
+      .card { padding: 8px; margin-bottom: 8px; border-radius: 6px; }
+      .card-stats { min-height: 390px; }
+      .card-windows { min-height: 720px; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      .row { gap: 6px; }
+      .col { min-width: 200px; }
+      #status { min-height: 28px; max-height: 28px; font-size: 10px; }
     }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
     .col { flex: 1; min-width: 280px; }
@@ -27,17 +33,37 @@
     .kpi { background: #0f1626; border: 1px solid #1d2a44; border-radius: 6px; padding: 8px; min-height: 80px; display: flex; flex-direction: column; overflow: hidden; }
     .kpi .label { font-size: 11px; color: #9fb0cc; }
     .kpi .value { font-size: 13px; margin-top: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; word-break: break-word; line-height: 1.35; }
-    .kpi-wall { min-height: 120px; }
-    .kpi-ratio { min-height: 85px; }
-    .kpi-window { min-height: 95px; }
+    .kpi-wall { min-height: 105px; }
+    .kpi-ratio { min-height: 75px; }
+    .kpi-window { min-height: 85px; }
+    .kpi-chart { min-height: 120px; }
+    .chart-bar-container { margin-top: 8px; height: 30px; background: #0f1626; border-radius: 4px; overflow: hidden; display: flex; }
+    .chart-bar { height: 100%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+    .chart-bar.buy { background: linear-gradient(90deg, #7a2434, #ff9aa5); color: #fff; }
+    .chart-bar.sell { background: linear-gradient(90deg, #1e6a38, #76e0a6); color: #fff; }
+    .chart-legend { margin-top: 6px; display: flex; gap: 12px; font-size: 11px; }
+    .chart-legend-item { display: flex; align-items: center; gap: 4px; }
+    .chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .chart-legend-dot.buy { background: #ff9aa5; }
+    .chart-legend-dot.sell { background: #76e0a6; }
     @media (max-width: 768px) {
-      .kpi { min-height: 140px; }
-      .kpi-wall { min-height: 200px; }
-      .kpi-ratio { min-height: 120px; }
-      .kpi-window { min-height: 170px; }
-      .kpi .value { font-size: 11px; line-height: 1.3; }
-      .kpi .label { font-size: 11px; }
-      .grid { gap: 8px; }
+      .kpi { min-height: 125px; padding: 6px; }
+      .kpi-wall { min-height: 175px; }
+      .kpi-ratio { min-height: 105px; }
+      .kpi-window { min-height: 145px; }
+      .kpi-chart { min-height: 140px; }
+      .kpi .value { font-size: 10.5px; line-height: 1.25; margin-top: 3px; }
+      .kpi .label { font-size: 10px; }
+      .grid { gap: 6px; }
+      input, select { height: 34px; padding: 6px 8px; font-size: 13px; }
+      .btn { height: 34px; padding: 6px 10px; font-size: 12px; }
+      .pill { font-size: 10px; padding: 2px 5px; }
+      label { font-size: 10px; margin-bottom: 2px; }
+      table th, table td { padding: 4px 5px; font-size: 11px; }
+      .sep { margin: 3px 0; }
+      .small { font-size: 10px; }
+      .chart-bar { font-size: 10px; }
+      .chart-legend { font-size: 10px; gap: 8px; }
     }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 6px 8px; border-bottom: 1px solid #1d2a44; font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -85,14 +111,14 @@
         <label>大单阈值（单位：基础币，如 BTC）</label>
         <input id="threshold" type="number" step="0.1" value="3" />
       </div>
-      <div class="col" style="display:flex;align-items:flex-end;gap:8px;">
+      <div class="col" style="display:flex;align-items:flex-end;gap:6px;">
         <button class="btn" id="connectBtn">连接</button>
         <button class="btn" id="resetBtn" style="background:#6b7280;">重置统计</button>
         <button class="btn" id="exportBtn" style="background:#2f855a;">导出CSV</button>
         <button class="btn" id="clearStorageBtn" style="background:#7a2434;">清空持久化</button>
       </div>
     </div>
-    <div class="row" style="margin-top:8px; align-items:flex-end;">
+    <div class="row" style="margin-top:6px; align-items:flex-end;">
       <div class="col">
         <label>自定义网关（可选，用于科学上网，示例：<code>ws://127.0.0.1:8765/ws</code>）</label>
         <input id="gateway" placeholder="留空则直连 Binance" value="" />
@@ -109,7 +135,7 @@
   <div class="row">
     <div class="col">
       <div class="card card-stats">
-        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:6px;justify-content:space-between;">
           <div>
             <span class="pill neutral">实时统计</span>
             <span id="pairTitle" class="small muted"></span>
@@ -118,7 +144,7 @@
             <span id="powerBadge" class="pill neutral">⚖️ 基本均衡</span>
           </div>
         </div>
-        <div class="grid" style="margin-top:10px;">
+        <div class="grid" style="margin-top:6px;">
           <div class="kpi kpi-wall">
             <div class="label">当前买单墙（笔数 / 总量 / 总值$）</div>
             <div class="value" id="kpiBid">-</div>
@@ -141,7 +167,23 @@
       <div class="card card-windows">
         <span class="pill neutral">📈 窗口期成交汇总</span>
         <div class="grid" style="margin-top:6px;">
-          <div class="kpi kpi-window"><div class="label">15 分钟</div><div class="value" id="agg15m">-</div></div>
+          <div class="kpi kpi-chart" style="grid-column: 1 / -1;">
+            <div class="label">15 分钟</div>
+            <div class="chart-bar-container" id="chart15m">
+              <div class="chart-bar buy" style="width: 50%;">买 0</div>
+              <div class="chart-bar sell" style="width: 50%;">卖 0</div>
+            </div>
+            <div class="chart-legend">
+              <div class="chart-legend-item">
+                <span class="chart-legend-dot buy"></span>
+                <span id="legend15mBuy">买单: 0 (0%)</span>
+              </div>
+              <div class="chart-legend-item">
+                <span class="chart-legend-dot sell"></span>
+                <span id="legend15mSell">卖单: 0 (0%)</span>
+              </div>
+            </div>
+          </div>
           <div class="kpi kpi-window"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
           <div class="kpi kpi-window"><div class="label">24 小时</div><div class="value" id="agg24h">-</div></div>
           <div class="kpi kpi-window"><div class="label">48 小时</div><div class="value" id="agg48h">-</div></div>
@@ -501,8 +543,36 @@
     function renderWindowsAgg() {
       const agg = aggregateWindows();
       for (const w of windows) {
-        const el = document.getElementById(w.id);
-        if (el && agg[w.id]) el.innerHTML = agg[w.id].html;
+        if (w.id === 'agg15m') {
+          // 15分钟用图形化显示
+          const data = agg[w.id];
+          if (data) {
+            const total = data.buyQty + data.sellQty;
+            const buyPct = total > 0 ? (data.buyQty / total * 100) : 50;
+            const sellPct = total > 0 ? (data.sellQty / total * 100) : 50;
+            
+            const chartContainer = document.getElementById('chart15m');
+            if (chartContainer) {
+              const buyBar = chartContainer.querySelector('.chart-bar.buy');
+              const sellBar = chartContainer.querySelector('.chart-bar.sell');
+              if (buyBar && sellBar) {
+                buyBar.style.width = buyPct + '%';
+                sellBar.style.width = sellPct + '%';
+                buyBar.textContent = total > 0 ? `买 ${fmt(buyPct, 1)}%` : '买 0%';
+                sellBar.textContent = total > 0 ? `卖 ${fmt(sellPct, 1)}%` : '卖 0%';
+              }
+            }
+            
+            const legendBuy = document.getElementById('legend15mBuy');
+            const legendSell = document.getElementById('legend15mSell');
+            if (legendBuy) legendBuy.textContent = `买单: ${fmt(data.buyQty, 1)} (${fmt(buyPct, 1)}%) · ${data.buyCnt}笔`;
+            if (legendSell) legendSell.textContent = `卖单: ${fmt(data.sellQty, 1)} (${fmt(sellPct, 1)}%) · ${data.sellCnt}笔`;
+          }
+        } else {
+          // 其他时间窗口保持文字显示
+          const el = document.getElementById(w.id);
+          if (el && agg[w.id]) el.innerHTML = agg[w.id].html;
+        }
       }
     }
 
