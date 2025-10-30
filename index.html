@@ -5,34 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Binance 大额订单监控</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 16px; background: #0b1220; color: #e6e9ef; }
-    h1 { font-size: 20px; margin: 0 0 8px; }
-    .card { background: #121a2a; border: 1px solid #1d2a44; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 12px; background: #0b1220; color: #e6e9ef; }
+    h1 { font-size: 20px; margin: 0 0 6px; }
+    .card { background: #121a2a; border: 1px solid #1d2a44; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+    .card-stats { min-height: 320px; }
+    .card-windows { min-height: 480px; }
+    @media (max-width: 768px) {
+      .card-stats { min-height: 500px; }
+      .card-windows { min-height: 950px; }
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
     .col { flex: 1; min-width: 280px; }
-    label { font-size: 12px; color: #9fb0cc; }
-    input, select { background: #0f1626; color: #e6e9ef; border: 1px solid #22314f; border-radius: 8px; padding: 10px 12px; width: 100%; box-sizing: border-box; height: 40px; }
+    label { font-size: 11px; color: #9fb0cc; margin-bottom: 4px; }
+    input, select { background: #0f1626; color: #e6e9ef; border: 1px solid #22314f; border-radius: 6px; padding: 8px 10px; width: 100%; box-sizing: border-box; height: 36px; }
     select { appearance: none; }
-    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin-right: 6px; }
+    .pill { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 11px; margin-right: 4px; }
     .pill.buy { background: #3b1720; color: #ff9aa5; border: 1px solid #7a2434; }
     .pill.sell { background: #14351c; color: #76e0a6; border: 1px solid #1e6a38; }
     .pill.neutral { background: #202a3b; color: #9fb0cc; border: 1px solid #324565; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .kpi { background: #0f1626; border: 1px solid #1d2a44; border-radius: 8px; padding: 10px; min-height: 80px; display: flex; flex-direction: column; }
-    .kpi .label { font-size: 12px; color: #9fb0cc; }
-    .kpi .value { font-size: 16px; margin-top: 6px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; word-break: break-all; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .kpi { background: #0f1626; border: 1px solid #1d2a44; border-radius: 6px; padding: 8px; min-height: 80px; display: flex; flex-direction: column; overflow: hidden; }
+    .kpi .label { font-size: 11px; color: #9fb0cc; }
+    .kpi .value { font-size: 13px; margin-top: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; word-break: break-word; line-height: 1.35; }
+    .kpi-wall { min-height: 120px; }
+    .kpi-ratio { min-height: 85px; }
+    .kpi-window { min-height: 95px; }
+    @media (max-width: 768px) {
+      .kpi { min-height: 140px; }
+      .kpi-wall { min-height: 200px; }
+      .kpi-ratio { min-height: 120px; }
+      .kpi-window { min-height: 170px; }
+      .kpi .value { font-size: 11px; line-height: 1.3; }
+      .kpi .label { font-size: 11px; }
+      .grid { gap: 8px; }
+    }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px; border-bottom: 1px solid #1d2a44; font-size: 13px; font-variant-numeric: tabular-nums; }
+    th, td { padding: 6px 8px; border-bottom: 1px solid #1d2a44; font-size: 12px; font-variant-numeric: tabular-nums; }
     th { text-align: left; color: #9fb0cc; font-weight: 600; }
     tr:hover td { background: #0f1626; }
     .agg-window { min-height: 70px; }
     .muted { color: #9fb0cc; }
     .ok { color: #76e0a6; }
     .err { color: #ff9aa5; }
-    .hint { font-size: 12px; color: #9fb0cc; }
-    .small { font-size: 12px; }
-    .sep { height: 1px; background: #1d2a44; margin: 10px 0; }
-    .btn { background: #1b59b0; color: white; border: 0; border-radius: 8px; padding: 10px 14px; height: 40px; cursor: pointer; }
+    .hint { font-size: 11px; color: #9fb0cc; }
+    .small { font-size: 11px; }
+    .sep { height: 1px; background: #1d2a44; margin: 6px 0; }
+    #status { min-height: 32px; max-height: 32px; overflow: hidden; display: flex; align-items: center; line-height: 1.4; white-space: nowrap; }
+    .btn { background: #1b59b0; color: white; border: 0; border-radius: 6px; padding: 8px 12px; height: 36px; cursor: pointer; font-size: 13px; }
     .btn:disabled { background: #253551; cursor: not-allowed; }
     code { color: #9bd1ff; }
   </style>
@@ -89,7 +108,7 @@
 
   <div class="row">
     <div class="col">
-      <div class="card">
+      <div class="card card-stats">
         <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
           <div>
             <span class="pill neutral">实时统计</span>
@@ -100,35 +119,35 @@
           </div>
         </div>
         <div class="grid" style="margin-top:10px;">
-          <div class="kpi" style="min-height:110px;">
+          <div class="kpi kpi-wall">
             <div class="label">当前买单墙（笔数 / 总量 / 总值$）</div>
             <div class="value" id="kpiBid">-</div>
           </div>
-          <div class="kpi" style="min-height:110px;">
+          <div class="kpi kpi-wall">
             <div class="label">当前卖单墙（笔数 / 总量 / 总值$）</div>
             <div class="value" id="kpiAsk">-</div>
           </div>
-          <div class="kpi" style="min-height:80px;">
+          <div class="kpi kpi-ratio">
             <div class="label">数量比例（买:卖）</div>
             <div class="value" id="kpiQtyRatio">-</div>
           </div>
-          <div class="kpi" style="min-height:80px;">
+          <div class="kpi kpi-ratio">
             <div class="label">金额比例（买:卖）</div>
             <div class="value" id="kpiValRatio">-</div>
           </div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card card-windows">
         <span class="pill neutral">📈 窗口期成交汇总</span>
-        <div class="grid" style="margin-top:10px;">
-          <div class="kpi" style="min-height:100px;"><div class="label">15 分钟</div><div class="value" id="agg15m">-</div></div>
-          <div class="kpi" style="min-height:100px;"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
-          <div class="kpi" style="min-height:100px;"><div class="label">24 小时</div><div class="value" id="agg24h">-</div></div>
-          <div class="kpi" style="min-height:100px;"><div class="label">48 小时</div><div class="value" id="agg48h">-</div></div>
-          <div class="kpi" style="min-height:100px;"><div class="label">72 小时</div><div class="value" id="agg72h">-</div></div>
+        <div class="grid" style="margin-top:6px;">
+          <div class="kpi kpi-window"><div class="label">15 分钟</div><div class="value" id="agg15m">-</div></div>
+          <div class="kpi kpi-window"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
+          <div class="kpi kpi-window"><div class="label">24 小时</div><div class="value" id="agg24h">-</div></div>
+          <div class="kpi kpi-window"><div class="label">48 小时</div><div class="value" id="agg48h">-</div></div>
+          <div class="kpi kpi-window"><div class="label">72 小时</div><div class="value" id="agg72h">-</div></div>
         </div>
-        <div class="small muted" style="margin-top:8px;">显示最近窗口内“被判定成交的大额挂单”的买/卖累计数量与占比。</div>
+        <div class="small muted" style="margin-top:4px;">显示最近窗口内"被判定成交的大额挂单"的买/卖累计数量与占比。</div>
       </div>
 
       
@@ -293,7 +312,10 @@
           : binanceUrl;
         const marketLabel = marketType === 'usdtm' ? 'USDT合约' : (marketType === 'coinm' ? '币本位合约' : '现货');
         elPairTitle.textContent = `${symbol.toUpperCase()} · ${marketLabel} @ 深度 ${depth}`;
-        elStatus.textContent = `连接中：${url}`;
+        // 缩短URL显示，避免换行导致跳动
+        const shortUrl = url.length > 80 ? url.substring(0, 80) + '...' : url;
+        elStatus.innerHTML = `<span>连接中...</span>`;
+        elStatus.title = url; // 完整URL显示在悬停提示中
 
         // 加载到本地历史后立即渲染，避免断线期间页面空白
         renderAll({ symbol, threshold });
@@ -320,17 +342,20 @@
         };
 
         ws.onerror = (e) => {
-          elStatus.innerHTML = `<span class=\"err\">❌ WebSocket 错误：${e?.message || '请检查网络/代理/网关'}</span>`;
+          elStatus.innerHTML = `<span class=\"err\">❌ 连接错误</span>`;
+          elStatus.title = e?.message || '请检查网络/代理/网关';
           connectBtn.disabled = false;
         };
 
         ws.onclose = () => {
-          elStatus.innerHTML = `<span class=\"muted\">🔌 已断开，5 秒后尝试重连...</span>`;
+          elStatus.innerHTML = `<span class=\"muted\">🔌 重连中...</span>`;
+          elStatus.title = '连接已断开，5秒后自动重连';
           connectBtn.disabled = false;
           setTimeout(() => connect(true), 5000);
         };
       } catch (err) {
-        elStatus.innerHTML = `<span class=\"err\">❌ 连接初始化失败：${(err && err.message) || err}</span>`;
+        elStatus.innerHTML = `<span class=\"err\">❌ 初始化失败</span>`;
+        elStatus.title = (err && err.message) || err || '未知错误';
         connectBtn.disabled = false;
       }
     }
