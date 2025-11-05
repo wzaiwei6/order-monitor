@@ -19,7 +19,6 @@
       .row { gap: 6px; }
       .col { min-width: 200px; }
       #status { min-height: 28px; max-height: 28px; font-size: 10px; }
-      a[href="3min.html"] { font-size: 11px; padding: 3px 6px; }
     }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
     .col { flex: 1; min-width: 280px; }
@@ -58,7 +57,6 @@
       .grid { gap: 6px; }
       input, select { height: 34px; padding: 6px 8px; font-size: 13px; }
       .btn { height: 34px; padding: 6px 10px; font-size: 12px; }
-      #thresholdOp { width: 70px !important; font-size: 12px; }
       .pill { font-size: 10px; padding: 2px 5px; }
       label { font-size: 10px; margin-bottom: 2px; }
       table th, table td { padding: 4px 5px; font-size: 11px; }
@@ -82,16 +80,11 @@
     .btn { background: #1b59b0; color: white; border: 0; border-radius: 6px; padding: 8px 12px; height: 36px; cursor: pointer; font-size: 13px; }
     .btn:disabled { background: #253551; cursor: not-allowed; }
     code { color: #9bd1ff; }
-    a[href="3min.html"] { transition: all 0.2s ease; }
-    a[href="3min.html"]:hover { background: #1b59b0; border-color: #1b59b0; color: white; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <h1 style="margin:0;">🚀 Binance 大额订单监控 </h1>
-      <a href="3min.html" style="color:#9bd1ff;text-decoration:none;font-size:12px;padding:4px 8px;border:1px solid #22314f;border-radius:4px;background:#0f1626;">📊 3分钟视图</a>
-    </div>
+    <h1>🚀 Binance 大额订单监控 </h1>
     <div class="row" style="align-items:flex-end;">
       <div class="col">
         <label>交易对（现货例：<code>btcusdt</code>；USDT合约例：<code>btcusdt</code>；币本位例：<code>btcusd_perp</code>）</label>
@@ -116,17 +109,12 @@
       </div>
       <div class="col">
         <label>大单阈值（单位：基础币，如 BTC）</label>
-        <div style="display:flex;gap:6px;">
-          <select id="thresholdOp" style="width:80px;flex-shrink:0;">
-            <option value="gt" selected>大于</option>
-            <option value="lt">小于</option>
-          </select>
-          <input id="threshold" type="number" step="0.1" value="3" style="flex:1;" />
-        </div>
+        <input id="threshold" type="number" step="0.1" value="3" />
       </div>
       <div class="col" style="display:flex;align-items:flex-end;gap:6px;">
         <button class="btn" id="connectBtn">连接</button>
         <button class="btn" id="resetBtn" style="background:#6b7280;">重置统计</button>
+        <button class="btn" id="exportBtn" style="background:#2f855a;">导出CSV</button>
         <button class="btn" id="clearStorageBtn" style="background:#7a2434;">清空持久化</button>
       </div>
     </div>
@@ -145,6 +133,55 @@
   </div>
 
   <div class="row">
+    <div class="col">
+      <div class="card card-windows">
+        <span class="pill neutral">📈 窗口期成交汇总</span>
+        <div class="grid" style="margin-top:6px;">
+          <div class="kpi kpi-chart" style="grid-column: 1 / -1;">
+            <div class="label">3 分钟</div>
+            <div class="chart-bar-container" id="chart3m">
+              <div class="chart-bar buy" style="width: 50%;">买 0</div>
+              <div class="chart-bar sell" style="width: 50%;">卖 0</div>
+            </div>
+            <div class="chart-legend">
+              <div class="chart-legend-item">
+                <span class="chart-legend-dot buy"></span>
+                <span id="legend3mBuy">买单: 0 (0%)</span>
+              </div>
+              <div class="chart-legend-item">
+                <span class="chart-legend-dot sell"></span>
+                <span id="legend3mSell">卖单: 0 (0%)</span>
+              </div>
+            </div>
+          </div>
+          <div class="kpi kpi-window"><div class="label">15 分钟</div><div class="value" id="agg15m">-</div></div>
+          <div class="kpi kpi-window"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
+          <div class="kpi kpi-window"><div class="label">4 小时</div><div class="value" id="agg4h">-</div></div>
+          <div class="kpi kpi-window"><div class="label">24 小时</div><div class="value" id="agg24h">-</div></div>
+        </div>
+        <div class="small muted" style="margin-top:4px;">显示最近窗口内"被判定成交的大额挂单"的买/卖累计数量与占比。</div>
+      </div>
+
+      <div class="card">
+        <span class="pill neutral">📜 最近成交记录（最多 20 条）</span>
+        <div class="sep"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>状态</th>
+              <th>方向</th>
+              <th>价格</th>
+              <th>数量</th>
+              <th>成交时间</th>
+              <th>存续(秒)</th>
+            </tr>
+          </thead>
+          <tbody id="historyTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="col">
       <div class="card card-stats">
         <div style="display:flex;align-items:center;gap:6px;justify-content:space-between;">
@@ -176,57 +213,6 @@
         </div>
       </div>
 
-      <div class="card card-windows">
-        <span class="pill neutral">📈 窗口期成交汇总</span>
-        <div class="grid" style="margin-top:6px;">
-          <div class="kpi kpi-chart" style="grid-column: 1 / -1;">
-            <div class="label">15 分钟</div>
-            <div class="chart-bar-container" id="chart15m">
-              <div class="chart-bar buy" style="width: 50%;">买 0</div>
-              <div class="chart-bar sell" style="width: 50%;">卖 0</div>
-            </div>
-            <div class="chart-legend">
-              <div class="chart-legend-item">
-                <span class="chart-legend-dot buy"></span>
-                <span id="legend15mBuy">买单: 0 (0%)</span>
-              </div>
-              <div class="chart-legend-item">
-                <span class="chart-legend-dot sell"></span>
-                <span id="legend15mSell">卖单: 0 (0%)</span>
-              </div>
-            </div>
-          </div>
-          <div class="kpi kpi-window"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
-          <div class="kpi kpi-window"><div class="label">24 小时</div><div class="value" id="agg24h">-</div></div>
-          <div class="kpi kpi-window"><div class="label">48 小时</div><div class="value" id="agg48h">-</div></div>
-          <div class="kpi kpi-window"><div class="label">72 小时</div><div class="value" id="agg72h">-</div></div>
-        </div>
-        <div class="small muted" style="margin-top:4px;">显示最近窗口内"被判定成交的大额挂单"的买/卖累计数量与占比。</div>
-      </div>
-
-      
-
-      <div class="card">
-        <span class="pill neutral">📜 最近成交记录（最多 20 条）</span>
-        <div class="sep"></div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>状态</th>
-              <th>方向</th>
-              <th>价格</th>
-              <th>数量</th>
-              <th>成交时间</th>
-              <th>存续(秒)</th>
-            </tr>
-          </thead>
-          <tbody id="historyTbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="col">
       <div class="card">
         <span class="pill sell">🟢 当前卖单墙（前 10）</span>
         <div class="sep"></div>
@@ -266,11 +252,11 @@
     let currentSymbol = 'btcusdt';
     const MAX_HISTORY_DISPLAY = 20;
     const windows = [
+      { id: 'agg3m',  label: '3m',  spanSec: 3 * 60 },
       { id: 'agg15m', label: '15m', spanSec: 15 * 60 },
       { id: 'agg1h',  label: '1h',  spanSec: 60 * 60 },
+      { id: 'agg4h',  label: '4h',  spanSec: 4 * 60 * 60 },
       { id: 'agg24h', label: '24h', spanSec: 24 * 60 * 60 },
-      { id: 'agg48h', label: '48h', spanSec: 48 * 60 * 60 },
-      { id: 'agg72h', label: '72h', spanSec: 72 * 60 * 60 },
     ];
     const statsHistory = []; // 用于简单趋势（可选）
     const MAX_STATS_HISTORY = 60; // 约 1 分钟
@@ -308,6 +294,13 @@
       trackedOrders = {};
       if (!opts.keepHistory) {
         orderHistory = [];
+        // 清除 localStorage 中的持久化数据（使用当前输入框中的 symbol 或已保存的 currentSymbol）
+        try {
+          const symbol = document.getElementById('symbol')?.value?.trim() || currentSymbol;
+          if (symbol) {
+            localStorage.removeItem(getStorageKey(symbol));
+          }
+        } catch (e) {}
       }
       statsHistory.length = 0;
       renderAll({});
@@ -320,9 +313,28 @@
         if (!raw) return;
         const arr = JSON.parse(raw);
         if (Array.isArray(arr)) {
-          // 确保按时间倒序（最近在前）
-          arr.sort((a,b) => (b.filled_time_sec||0) - (a.filled_time_sec||0));
-          orderHistory = arr;
+          const now = nowSec();
+          // 只保留最近72小时的数据，避免旧数据影响数据范围计算
+          const maxAgeSec = 72 * 60 * 60; // 72小时
+          const minTime = now - maxAgeSec;
+          
+          // 数据校验和类型转换，并过滤掉太旧的数据
+          orderHistory = arr
+            .map(o => ({
+              ...o,
+              filled_time_sec: Number(o.filled_time_sec) || 0,
+              price: Number(o.price) || 0,
+              qty: Number(o.qty) || 0,
+              duration: Number(o.duration) || 0,
+              first_seen: Number(o.first_seen) || 0
+            }))
+            .filter(o => o.filled_time_sec > 0 && o.filled_time_sec >= minTime) // 过滤无效时间戳和太旧的数据
+            .sort((a, b) => Number(b.filled_time_sec) - Number(a.filled_time_sec)); // 确保按时间倒序（最近在前）
+          
+          // 如果过滤后数据变少了，更新 localStorage
+          if (orderHistory.length < arr.length) {
+            saveHistoryToStorage(symbol);
+          }
         }
       } catch (e) { /* 忽略 */ }
     }
@@ -343,7 +355,6 @@
         const depth = document.getElementById('depth').value;
         const marketType = document.getElementById('marketType').value;
         const threshold = Number(document.getElementById('threshold').value || 0);
-        const thresholdOp = document.getElementById('thresholdOp').value || 'gt';
         const gateway = (document.getElementById('gateway').value || '').trim();
         const gatewayProxy = (document.getElementById('gatewayProxy').value || '').trim();
 
@@ -360,7 +371,11 @@
           resetAll({ keepHistory: false });
         }
         currentSymbol = symbol;
-        loadHistoryFromStorage(symbol);
+        
+        // 只在非重连时加载历史数据（重连时保留内存中的历史）
+        if (!isReconnect) {
+          loadHistoryFromStorage(symbol);
+        }
         const binanceUrl = buildBinanceWsUrl(symbol, depth, marketType);
         const url = gateway
           ? `${gateway}?target=${encodeURIComponent(binanceUrl)}${gatewayProxy ? `&proxy=${encodeURIComponent(gatewayProxy)}` : ''}`
@@ -379,23 +394,65 @@
         ws = new WebSocket(url);
 
         ws.onopen = () => {
-          const opSymbol = thresholdOp === 'lt' ? '≤' : '≥';
-          elStatus.innerHTML = `<span class="ok">✅ 已连接</span> <span class=\"muted small\">阈值 ${opSymbol} ${threshold} ${symbol.slice(0, -4).toUpperCase()}</span>`;
+          elStatus.innerHTML = `<span class="ok">✅ 已连接</span> <span class=\"muted small\">阈值 ≥ ${threshold} ${symbol.slice(0, -4).toUpperCase()}</span>`;
           connectBtn.disabled = false;
         };
 
         ws.onmessage = (ev) => {
           try {
             const data = JSON.parse(ev.data);
-            // 现货: bids/asks；合约: b/a
-            const bids = (marketType === 'spot') ? (data.bids || data.b || []) : (data.b || data.bids || []);
-            const asks = (marketType === 'spot') ? (data.asks || data.a || []) : (data.a || data.asks || []);
-            // 动态获取阈值和操作符，允许运行时修改
-            const currentThreshold = Number(document.getElementById('threshold').value || 0);
-            const currentThresholdOp = document.getElementById('thresholdOp').value || 'gt';
-            updateOrderTracking(bids, asks, currentThreshold, currentThresholdOp);
-            renderAll({ symbol, threshold: currentThreshold });
+            // 获取当前市场类型（每次消息都重新获取，避免闭包问题）
+            const currentMarketType = document.getElementById('marketType').value;
+            
+            // Binance深度数据格式：
+            // 现货部分深度: { "lastUpdateId": 160, "bids": [...], "asks": [...] }
+            // 现货深度更新: { "e": "depthUpdate", "b": [...], "a": [...] }
+            // 合约深度更新: { "e": "depthUpdate", "b": [...], "a": [...] }
+            // 合约部分深度: { "lastUpdateId": 160, "bids": [...], "asks": [...] } 或 { "b": [...], "a": [...] }
+            let bids = [];
+            let asks = [];
+            
+            if (currentMarketType === 'spot') {
+              // 现货优先使用 bids/asks
+              bids = data.bids || data.b || [];
+              asks = data.asks || data.a || [];
+            } else {
+              // USDT本位合约和币本位合约优先使用 b/a（深度更新格式）
+              // 但也兼容 bids/asks（部分深度快照格式）
+              bids = data.b || data.bids || [];
+              asks = data.a || data.asks || [];
+            }
+            
+            // 调试：如果数据为空，输出详细日志
+            if ((!bids || bids.length === 0) && (!asks || asks.length === 0)) {
+              console.warn('数据为空:', { 
+                marketType: currentMarketType, 
+                dataKeys: Object.keys(data), 
+                hasB: !!data.b,
+                hasA: !!data.a,
+                hasBids: !!data.bids,
+                hasAsks: !!data.asks,
+                eventType: data.e,
+                lastUpdateId: data.lastUpdateId,
+                symbol: data.s,
+                sampleData: JSON.stringify(data).substring(0, 500)
+              });
+            } else {
+              // 成功接收数据时，偶尔输出一次确认
+              if (Math.random() < 0.01) { // 1% 概率输出，避免日志过多
+                console.log('数据接收正常:', { 
+                  marketType: currentMarketType, 
+                  bidsLen: bids.length, 
+                  asksLen: asks.length,
+                  eventType: data.e
+                });
+              }
+            }
+            
+            updateOrderTracking(bids, asks, threshold);
+            renderAll({ symbol, threshold });
           } catch (e) {
+            console.error('消息处理错误:', e, ev.data?.substring(0, 200));
             // JSON 解析失败忽略
           }
         };
@@ -420,20 +477,15 @@
     }
 
     // 复刻核心：跟踪达到阈值的价位，如果该价位在下一次快照中消失，则认为成交
-    function updateOrderTracking(bids, asks, threshold, thresholdOp = 'gt') {
+    function updateOrderTracking(bids, asks, threshold) {
       const t = nowSec();
       const current = {};
-      
-      // 根据操作符选择比较函数
-      const compareFn = thresholdOp === 'lt' 
-        ? (qty, threshold) => qty <= threshold  // 小于等于阈值
-        : (qty, threshold) => qty >= threshold; // 大于等于阈值（默认）
 
       // 处理买单
       for (const [priceStr, qtyStr] of bids) {
         const price = parseFloat(priceStr);
         const qty = parseFloat(qtyStr);
-        if (compareFn(qty, threshold)) {
+        if (qty >= threshold) {
           const key = `bid_${price}`;
           current[key] = true;
           if (!trackedOrders[key]) {
@@ -449,7 +501,7 @@
       for (const [priceStr, qtyStr] of asks) {
         const price = parseFloat(priceStr);
         const qty = parseFloat(qtyStr);
-        if (compareFn(qty, threshold)) {
+        if (qty >= threshold) {
           const key = `ask_${price}`;
           current[key] = true;
           if (!trackedOrders[key]) {
@@ -467,12 +519,12 @@
           const duration = t - o.firstSeen;
           const filled = {
             side: o.side,
-            price: o.price,
-            qty: o.qty,
-            first_seen: o.firstSeen,
-            filled_time_sec: t,
+            price: Number(o.price) || 0,
+            qty: Number(o.qty) || 0,
+            first_seen: Number(o.firstSeen) || 0,
+            filled_time_sec: Number(t),
             filled_time: fmtTs(t),
-            duration,
+            duration: Number(duration) || 0,
             status: '✅ 已成交',
           };
           orderHistory.unshift(filled);
@@ -488,24 +540,82 @@
     function aggregateWindows() {
       const t = nowSec();
       const res = {};
+      
+      // 数据校验：确保 orderHistory 已排序且类型正确
+      const validHistory = orderHistory
+        .map(o => ({
+          ...o,
+          filled_time_sec: Number(o.filled_time_sec) || 0,
+          price: Number(o.price) || 0,
+          qty: Number(o.qty) || 0
+        }))
+        .filter(o => o.filled_time_sec > 0)
+        .sort((a, b) => Number(b.filled_time_sec) - Number(a.filled_time_sec));
+      
+      // 计算最早数据时间
+      const earliestTime = validHistory.length > 0 
+        ? Math.min(...validHistory.map(o => Number(o.filled_time_sec)))
+        : t;
+      const dataSpanSec = t - earliestTime;
+      
       for (const w of windows) {
         const from = t - w.spanSec;
         let buyCnt = 0, sellCnt = 0, buyQty = 0, sellQty = 0;
-        for (const o of orderHistory) {
-          if (o.filled_time_sec >= from) {
-            if ((o.side || '').includes('买')) { buyCnt++; buyQty += Number(o.qty) || 0; }
-            else if ((o.side || '').includes('卖')) { sellCnt++; sellQty += Number(o.qty) || 0; }
+        let windowEarliest = null; // 改为 null，用于判断窗口内是否有数据
+        
+        for (const o of validHistory) {
+          const filledTime = Number(o.filled_time_sec);
+          if (filledTime >= from) {
+            if ((o.side || '').includes('买')) { 
+              buyCnt++; 
+              buyQty += Number(o.qty) || 0; 
+            }
+            else if ((o.side || '').includes('卖')) { 
+              sellCnt++; 
+              sellQty += Number(o.qty) || 0; 
+            }
+            if (windowEarliest === null || filledTime < windowEarliest) {
+              windowEarliest = filledTime;
+            }
           } else {
-            // 因为是按时间倒序插入，可提前结束
+            // 因为是按时间倒序，可提前结束
             break;
           }
         }
+        
         const totalCnt = buyCnt + sellCnt;
         const pctBuy = totalCnt ? (buyCnt / totalCnt * 100) : 0;
         const pctSell = totalCnt ? (sellCnt / totalCnt * 100) : 0;
+        
+        // 检测数据是否充足
+        let actualSpanSec = 0;
+        let isDataSufficient = false;
+        
+        if (windowEarliest !== null) {
+          // 窗口内有数据，计算实际时间范围
+          actualSpanSec = t - windowEarliest;
+          isDataSufficient = actualSpanSec >= w.spanSec * 0.8; // 80% 阈值认为数据充足
+        }
+        // 窗口内没有数据时，actualSpanSec 保持为 0，不显示数据范围提示
+        
+        let dataHint = '';
+        if (windowEarliest !== null && !isDataSufficient) {
+          // 窗口内有数据但不足，显示窗口内的实际数据范围
+          const hours = (actualSpanSec / 3600).toFixed(1);
+          const minutes = (actualSpanSec / 60).toFixed(0);
+          if (actualSpanSec >= 3600) {
+            dataHint = `<br/><span class="muted small">数据仅${hours}小时</span>`;
+          } else if (actualSpanSec >= 60) {
+            dataHint = `<br/><span class="muted small">数据仅${minutes}分钟</span>`;
+          } else {
+            dataHint = `<br/><span class="muted small">数据不足</span>`;
+          }
+        }
+        // 窗口内没有数据时，不显示数据范围提示（因为窗口内确实没有数据）
+        
         res[w.id] = {
-          html: `买 ${fmt(buyQty)} / 卖 ${fmt(sellQty)}<br/>笔数 买${buyCnt} vs 卖${sellCnt}<br/>成交占比 买${fmt(pctBuy,1)}% vs 卖${fmt(pctSell,1)}%`,
-          buyQty, sellQty, buyCnt, sellCnt
+          html: `买 ${fmt(buyQty)} / 卖 ${fmt(sellQty)}<br/>笔数 买${buyCnt} vs 卖${sellCnt}<br/>成交占比 买${fmt(pctBuy,1)}% vs 卖${fmt(pctSell,1)}%${dataHint}`,
+          buyQty, sellQty, buyCnt, sellCnt, actualSpanSec, isDataSufficient
         };
       }
       return res;
@@ -565,15 +675,15 @@
     function renderWindowsAgg() {
       const agg = aggregateWindows();
       for (const w of windows) {
-        if (w.id === 'agg15m') {
-          // 15分钟用图形化显示
+        if (w.id === 'agg3m') {
+          // 3分钟用图形化显示
           const data = agg[w.id];
           if (data) {
             const total = data.buyQty + data.sellQty;
             const buyPct = total > 0 ? (data.buyQty / total * 100) : 50;
             const sellPct = total > 0 ? (data.sellQty / total * 100) : 50;
             
-            const chartContainer = document.getElementById('chart15m');
+            const chartContainer = document.getElementById('chart3m');
             if (chartContainer) {
               const buyBar = chartContainer.querySelector('.chart-bar.buy');
               const sellBar = chartContainer.querySelector('.chart-bar.sell');
@@ -585,10 +695,24 @@
               }
             }
             
-            const legendBuy = document.getElementById('legend15mBuy');
-            const legendSell = document.getElementById('legend15mSell');
-            if (legendBuy) legendBuy.textContent = `买单: ${fmt(data.buyQty, 1)} (${fmt(buyPct, 1)}%) · ${data.buyCnt}笔`;
-            if (legendSell) legendSell.textContent = `卖单: ${fmt(data.sellQty, 1)} (${fmt(sellPct, 1)}%) · ${data.sellCnt}笔`;
+            const legendBuy = document.getElementById('legend3mBuy');
+            const legendSell = document.getElementById('legend3mSell');
+            if (legendBuy) {
+              let hint = '';
+              if (!data.isDataSufficient && (data.buyCnt > 0 || data.sellCnt > 0)) {
+                const minutes = (data.actualSpanSec / 60).toFixed(0);
+                hint = ` (数据仅${minutes}分钟)`;
+              }
+              legendBuy.textContent = `买单: ${fmt(data.buyQty, 1)} (${fmt(buyPct, 1)}%) · ${data.buyCnt}笔${hint}`;
+            }
+            if (legendSell) {
+              let hint = '';
+              if (!data.isDataSufficient && (data.buyCnt > 0 || data.sellCnt > 0)) {
+                const minutes = (data.actualSpanSec / 60).toFixed(0);
+                hint = ` (数据仅${minutes}分钟)`;
+              }
+              legendSell.textContent = `卖单: ${fmt(data.sellQty, 1)} (${fmt(sellPct, 1)}%) · ${data.sellCnt}笔${hint}`;
+            }
           }
         } else {
           // 其他时间窗口保持文字显示
@@ -620,14 +744,40 @@
     }
 
 
+    // 导出 CSV（当前交易对的全部历史）
+    function exportCSV() {
+      const header = ['状态','方向','价格','数量','成交时间','存续(秒)'];
+      const lines = [header.join(',')];
+      for (const o of orderHistory) {
+        lines.push([
+          '已成交',
+          (o.side||'').replace(/[,\n]/g,' '),
+          o.price,
+          o.qty,
+          o.filled_time,
+          o.duration
+        ].join(','));
+      }
+      const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentSymbol}_order_history.csv`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    }
+
     function clearPersistent() {
       try { localStorage.removeItem(getStorageKey(currentSymbol)); } catch (e) {}
-      // 不清空内存中的历史，留给用户自行 "重置统计" 控制
+      // 不清空内存中的历史，留给用户自行 “重置统计” 控制
     }
 
     // 事件绑定
     document.getElementById('connectBtn').addEventListener('click', () => connect());
     document.getElementById('resetBtn').addEventListener('click', () => resetAll());
+    document.getElementById('exportBtn').addEventListener('click', () => exportCSV());
     document.getElementById('clearStorageBtn').addEventListener('click', () => { clearPersistent(); alert('已清空当前交易对的持久化历史'); });
 
     // 页面初次加载自动连接
