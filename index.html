@@ -8,13 +8,11 @@
     body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 12px; background: #0b1220; color: #e6e9ef; }
     h1 { font-size: 20px; margin: 0 0 6px; }
     .card { background: #121a2a; border: 1px solid #1d2a44; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-    .card-stats { min-height: 260px; }
-    .card-windows { min-height: 380px; }
+    .card-windows { min-height: 320px; }
     @media (max-width: 768px) {
       body { margin: 6px; }
       .card { padding: 8px; margin-bottom: 8px; border-radius: 6px; }
-      .card-stats { min-height: 390px; }
-      .card-windows { min-height: 720px; }
+      .card-windows { min-height: 480px; }
       h1 { font-size: 18px; margin: 0 0 4px; }
       .row { gap: 6px; }
       .col { min-width: 200px; }
@@ -34,8 +32,6 @@
     .kpi { background: #0f1626; border: 1px solid #1d2a44; border-radius: 6px; padding: 8px; min-height: 80px; display: flex; flex-direction: column; overflow: hidden; }
     .kpi .label { font-size: 11px; color: #9fb0cc; }
     .kpi .value { font-size: 13px; margin-top: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; word-break: break-word; line-height: 1.35; }
-    .kpi-wall { min-height: 105px; }
-    .kpi-ratio { min-height: 75px; }
     .kpi-window { min-height: 85px; }
     .kpi-chart { min-height: 120px; }
     .chart-bar-container { margin-top: 8px; height: 30px; background: #0f1626; border-radius: 4px; overflow: hidden; display: flex; }
@@ -49,8 +45,6 @@
     .chart-legend-dot.sell { background: #76e0a6; }
     @media (max-width: 768px) {
       .kpi { min-height: 125px; padding: 6px; }
-      .kpi-wall { min-height: 175px; }
-      .kpi-ratio { min-height: 105px; }
       .kpi-window { min-height: 145px; }
       .kpi-chart { min-height: 140px; }
       .kpi .value { font-size: 10.5px; line-height: 1.25; margin-top: 3px; }
@@ -61,17 +55,11 @@
       #thresholdOp { width: 70px !important; font-size: 12px; }
       .pill { font-size: 10px; padding: 2px 5px; }
       label { font-size: 10px; margin-bottom: 2px; }
-      table th, table td { padding: 4px 5px; font-size: 11px; }
       .sep { margin: 3px 0; }
       .small { font-size: 10px; }
       .chart-bar { font-size: 10px; }
       .chart-legend { font-size: 10px; gap: 8px; }
     }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 6px 8px; border-bottom: 1px solid #1d2a44; font-size: 12px; font-variant-numeric: tabular-nums; }
-    th { text-align: left; color: #9fb0cc; font-weight: 600; }
-    tr:hover td { background: #0f1626; }
-    .agg-window { min-height: 70px; }
     .muted { color: #9fb0cc; }
     .ok { color: #76e0a6; }
     .err { color: #ff9aa5; }
@@ -100,8 +88,8 @@
       <div class="col">
         <label>市场类型</label>
         <select id="marketType">
-          <option value="spot" selected>现货</option>
-          <option value="usdtm">USDT 本位合约</option>
+          <option value="spot">现货</option>
+          <option value="usdtm" selected>USDT 本位合约</option>
           <option value="coinm">币本位合约</option>
         </select>
       </div>
@@ -129,6 +117,12 @@
         <button class="btn" id="resetBtn" style="background:#6b7280;">重置统计</button>
         <button class="btn" id="clearStorageBtn" style="background:#7a2434;">清空持久化</button>
       </div>
+      <div class="col" style="display:flex;align-items:center;gap:6px;">
+        <label style="display:flex;align-items:center;gap:4px;margin:0;cursor:pointer;">
+          <input type="checkbox" id="autoReconnect" checked style="width:auto;height:auto;margin:0;">
+          <span style="font-size:12px;">自动重连</span>
+        </label>
+      </div>
     </div>
     <div class="row" style="margin-top:6px; align-items:flex-end;">
       <div class="col">
@@ -144,118 +138,34 @@
     <div class="small muted" id="status">未连接</div>
   </div>
 
-  <div class="row">
-    <div class="col">
-      <div class="card card-stats">
-        <div style="display:flex;align-items:center;gap:6px;justify-content:space-between;">
-          <div>
-            <span class="pill neutral">实时统计</span>
-            <span id="pairTitle" class="small muted"></span>
-          </div>
-          <div>
-            <span id="powerBadge" class="pill neutral">⚖️ 基本均衡</span>
-          </div>
-        </div>
-        <div class="grid" style="margin-top:6px;">
-          <div class="kpi kpi-wall">
-            <div class="label">当前买单墙（笔数 / 总量 / 总值$）</div>
-            <div class="value" id="kpiBid">-</div>
-          </div>
-          <div class="kpi kpi-wall">
-            <div class="label">当前卖单墙（笔数 / 总量 / 总值$）</div>
-            <div class="value" id="kpiAsk">-</div>
-          </div>
-          <div class="kpi kpi-ratio">
-            <div class="label">数量比例（买:卖）</div>
-            <div class="value" id="kpiQtyRatio">-</div>
-          </div>
-          <div class="kpi kpi-ratio">
-            <div class="label">金额比例（买:卖）</div>
-            <div class="value" id="kpiValRatio">-</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card card-windows">
+  <div class="card card-windows">
+    <div style="display:flex;align-items:center;gap:6px;justify-content:space-between;margin-bottom:6px;">
+      <div>
         <span class="pill neutral">📈 窗口期成交汇总</span>
-        <div class="grid" style="margin-top:6px;">
-          <div class="kpi kpi-chart" style="grid-column: 1 / -1;">
-            <div class="label">15 分钟</div>
-            <div class="chart-bar-container" id="chart15m">
-              <div class="chart-bar buy" style="width: 50%;">买 0</div>
-              <div class="chart-bar sell" style="width: 50%;">卖 0</div>
-            </div>
-            <div class="chart-legend">
-              <div class="chart-legend-item">
-                <span class="chart-legend-dot buy"></span>
-                <span id="legend15mBuy">买单: 0 (0%)</span>
-              </div>
-              <div class="chart-legend-item">
-                <span class="chart-legend-dot sell"></span>
-                <span id="legend15mSell">卖单: 0 (0%)</span>
-              </div>
-            </div>
-          </div>
-          <div class="kpi kpi-window"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
-          <div class="kpi kpi-window"><div class="label">24 小时</div><div class="value" id="agg24h">-</div></div>
-          <div class="kpi kpi-window"><div class="label">48 小时</div><div class="value" id="agg48h">-</div></div>
-          <div class="kpi kpi-window"><div class="label">72 小时</div><div class="value" id="agg72h">-</div></div>
+        <span id="pairTitle" class="small muted"></span>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:6px;">
+      <div class="kpi kpi-chart" style="grid-column: 1 / -1;">
+        <div class="label">15 分钟</div>
+        <div class="chart-bar-container" id="chart15m">
+          <div class="chart-bar buy" style="width: 50%;">买 0</div>
+          <div class="chart-bar sell" style="width: 50%;">卖 0</div>
         </div>
-        <div class="small muted" style="margin-top:4px;">显示最近窗口内"被判定成交的大额挂单"的买/卖累计数量与占比。</div>
+        <div class="chart-legend">
+          <div class="chart-legend-item">
+            <span class="chart-legend-dot buy"></span>
+            <span id="legend15mBuy">买单: 0 (0%)</span>
+          </div>
+          <div class="chart-legend-item">
+            <span class="chart-legend-dot sell"></span>
+            <span id="legend15mSell">卖单: 0 (0%)</span>
+          </div>
+        </div>
       </div>
-
-      
-
-      <div class="card">
-        <span class="pill neutral">📜 最近成交记录（最多 20 条）</span>
-        <div class="sep"></div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>状态</th>
-              <th>方向</th>
-              <th>价格</th>
-              <th>数量</th>
-              <th>成交时间</th>
-              <th>存续(秒)</th>
-            </tr>
-          </thead>
-          <tbody id="historyTbody"></tbody>
-        </table>
-      </div>
+      <div class="kpi kpi-window"><div class="label">1 小时</div><div class="value" id="agg1h">-</div></div>
     </div>
-
-    <div class="col">
-      <div class="card">
-        <span class="pill sell">🟢 当前卖单墙（前 10）</span>
-        <div class="sep"></div>
-        <table>
-          <thead>
-            <tr>
-              <th>价格</th>
-              <th>数量</th>
-              <th>持续(秒)</th>
-            </tr>
-          </thead>
-          <tbody id="asksTbody"></tbody>
-        </table>
-      </div>
-      <div class="card">
-        <span class="pill buy">🔴 当前买单墙（前 10）</span>
-        <div class="sep"></div>
-        <table>
-          <thead>
-            <tr>
-              <th>价格</th>
-              <th>数量</th>
-              <th>持续(秒)</th>
-            </tr>
-          </thead>
-          <tbody id="bidsTbody"></tbody>
-        </table>
-      </div>
-    </div>
+    <div class="small muted" style="margin-top:4px;">显示最近窗口内"被判定成交的大额挂单"的买/卖累计数量与占比。</div>
   </div>
 
   <script>
@@ -264,28 +174,16 @@
     let trackedOrders = {}; // key: bid_价格 / ask_价格 -> { side, price, qty, firstSeen, lastSeen, status }
     let orderHistory = [];  // 成交记录（消失即认为成交）
     let currentSymbol = 'btcusdt';
-    const MAX_HISTORY_DISPLAY = 20;
+    let lastMessageTime = 0; // 最后收到消息的时间
+    let heartbeatInterval = null; // 心跳检测定时器
     const windows = [
       { id: 'agg15m', label: '15m', spanSec: 15 * 60 },
       { id: 'agg1h',  label: '1h',  spanSec: 60 * 60 },
-      { id: 'agg24h', label: '24h', spanSec: 24 * 60 * 60 },
-      { id: 'agg48h', label: '48h', spanSec: 48 * 60 * 60 },
-      { id: 'agg72h', label: '72h', spanSec: 72 * 60 * 60 },
     ];
-    const statsHistory = []; // 用于简单趋势（可选）
-    const MAX_STATS_HISTORY = 60; // 约 1 分钟
 
     // DOM 引用
     const elStatus = document.getElementById('status');
     const elPairTitle = document.getElementById('pairTitle');
-    const elPowerBadge = document.getElementById('powerBadge');
-    const elKpiBid = document.getElementById('kpiBid');
-    const elKpiAsk = document.getElementById('kpiAsk');
-    const elKpiQtyRatio = document.getElementById('kpiQtyRatio');
-    const elKpiValRatio = document.getElementById('kpiValRatio');
-    const elBidsTbody = document.getElementById('bidsTbody');
-    const elAsksTbody = document.getElementById('asksTbody');
-    const elHistoryTbody = document.getElementById('historyTbody');
     
 
     function nowSec() { return Math.floor(Date.now() / 1000); }
@@ -309,8 +207,11 @@
       if (!opts.keepHistory) {
         orderHistory = [];
       }
-      statsHistory.length = 0;
-      renderAll({});
+      try {
+        renderAll({});
+      } catch (e) {
+        console.error('渲染错误:', e);
+      }
     }
 
     function getStorageKey(symbol) { return `orderMonitorHistory_v1:${symbol.trim().toLowerCase()}`; }
@@ -320,17 +221,19 @@
         if (!raw) return;
         const arr = JSON.parse(raw);
         if (Array.isArray(arr)) {
-          // 确保按时间倒序（最近在前）
-          arr.sort((a,b) => (b.filled_time_sec||0) - (a.filled_time_sec||0));
-          orderHistory = arr;
+          // 确保按时间倒序（最近在前），并只保留1小时内的记录
+          const oneHourAgo = nowSec() - 60 * 60;
+          const filtered = arr.filter(o => (o.filled_time_sec || 0) >= oneHourAgo);
+          filtered.sort((a,b) => (b.filled_time_sec||0) - (a.filled_time_sec||0));
+          orderHistory = filtered;
         }
       } catch (e) { /* 忽略 */ }
     }
     function saveHistoryToStorage(symbol) {
       try {
-        // 控制上限，避免无限膨胀（例如 200k 条，可自行调整）
-        const cap = 200000;
-        const data = orderHistory.slice(0, cap);
+        // 只保存1小时内的记录，释放内存
+        const oneHourAgo = nowSec() - 60 * 60;
+        const data = orderHistory.filter(o => (o.filled_time_sec || 0) >= oneHourAgo);
         localStorage.setItem(getStorageKey(symbol), JSON.stringify(data));
       } catch (e) { /* 可能超配额，忽略 */ }
     }
@@ -376,41 +279,114 @@
         renderAll({ symbol, threshold });
 
         try { if (ws) ws.close(); } catch (_) {}
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        
         ws = new WebSocket(url);
 
         ws.onopen = () => {
           const opSymbol = thresholdOp === 'lt' ? '≤' : '≥';
           elStatus.innerHTML = `<span class="ok">✅ 已连接</span> <span class=\"muted small\">阈值 ${opSymbol} ${threshold} ${symbol.slice(0, -4).toUpperCase()}</span>`;
           connectBtn.disabled = false;
+          lastMessageTime = Date.now();
+          
+          // 启动心跳检测（每30秒检查一次）
+          heartbeatInterval = setInterval(() => {
+            const now = Date.now();
+            const timeSinceLastMsg = (now - lastMessageTime) / 1000;
+            if (timeSinceLastMsg > 60) {
+              console.warn(`超过60秒未收到数据，主动断开重连`);
+              if (ws) ws.close();
+            }
+          }, 30000);
         };
 
+        let messageCount = 0;
         ws.onmessage = (ev) => {
+          lastMessageTime = Date.now(); // 更新最后收到消息的时间
+          messageCount++;
+          
           try {
             const data = JSON.parse(ev.data);
-            // 现货: bids/asks；合约: b/a
-            const bids = (marketType === 'spot') ? (data.bids || data.b || []) : (data.b || data.bids || []);
-            const asks = (marketType === 'spot') ? (data.asks || data.a || []) : (data.a || data.asks || []);
+            // 获取当前市场类型（每次消息都重新获取，避免闭包问题）
+            const currentMarketType = document.getElementById('marketType').value;
+            
+            // Binance深度数据格式处理
+            let bids = [];
+            let asks = [];
+            
+            if (currentMarketType === 'spot') {
+              // 现货优先使用 bids/asks
+              bids = data.bids || data.b || [];
+              asks = data.asks || data.a || [];
+            } else {
+              // USDT本位合约和币本位合约优先使用 b/a（深度更新格式）
+              bids = data.b || data.bids || [];
+              asks = data.a || data.asks || [];
+            }
+            
             // 动态获取阈值和操作符，允许运行时修改
             const currentThreshold = Number(document.getElementById('threshold').value || 0);
             const currentThresholdOp = document.getElementById('thresholdOp').value || 'gt';
             updateOrderTracking(bids, asks, currentThreshold, currentThresholdOp);
+            
+            // 每次都渲染，保持数据实时性（窗口期汇总页面数据量小，不需要限制渲染频率）
             renderAll({ symbol, threshold: currentThreshold });
           } catch (e) {
-            // JSON 解析失败忽略
+            console.error('消息处理错误:', e);
           }
         };
 
         ws.onerror = (e) => {
+          console.error('WebSocket 错误:', e);
           elStatus.innerHTML = `<span class=\"err\">❌ 连接错误</span>`;
           elStatus.title = e?.message || '请检查网络/代理/网关';
           connectBtn.disabled = false;
         };
 
-        ws.onclose = () => {
-          elStatus.innerHTML = `<span class=\"muted\">🔌 重连中...</span>`;
-          elStatus.title = '连接已断开，5秒后自动重连';
+        ws.onclose = (e) => {
+          if (heartbeatInterval) clearInterval(heartbeatInterval);
+          console.log('WebSocket 关闭:', {
+            code: e.code,
+            reason: e.reason,
+            wasClean: e.wasClean,
+            messageCount: messageCount,
+            symbol: symbol
+          });
+          
+          let reason = e.reason || '';
+          let displayMsg = '';
+          
+          // 优化显示文案，不要吓人
+          if (e.code === 1005 && messageCount > 10) {
+            // 这是正常的服务器刷新，不显示错误
+            displayMsg = '🔄 刷新连接中...';
+            reason = `服务器定期刷新(已收${messageCount}条消息)`;
+          } else if (e.code === 1000) {
+            displayMsg = '🔄 重新连接中...';
+            reason = '正常关闭';
+          } else if (e.code === 1006) {
+            displayMsg = '🔄 重新连接中...';
+            reason = '网络波动';
+          } else {
+            displayMsg = '🔄 重新连接中...';
+            reason = e.reason || `代码${e.code}`;
+          }
+          
+          const autoReconnect = document.getElementById('autoReconnect').checked;
+          
+          if (autoReconnect) {
+            elStatus.innerHTML = `<span class=\"muted\">${displayMsg}</span>`;
+            elStatus.title = `${reason}，2秒后自动重连`;
+            setTimeout(() => connect(true), 2000);  // 改成2秒
+          } else {
+            elStatus.innerHTML = `<span class=\"err\">⏸️ 已暂停</span>`;
+            elStatus.title = `${reason}。自动重连已禁用，请手动点击连接`;
+          }
+          
           connectBtn.disabled = false;
-          setTimeout(() => connect(true), 5000);
+          
+          // 重置消息计数
+          messageCount = 0;
         };
       } catch (err) {
         elStatus.innerHTML = `<span class=\"err\">❌ 初始化失败</span>`;
@@ -476,8 +452,9 @@
             status: '✅ 已成交',
           };
           orderHistory.unshift(filled);
-          // 只保留可视需要的数量
-          if (orderHistory.length > 5000) orderHistory.length = 5000;
+          // 清理超过1小时的记录，释放内存
+          const oneHourAgo = nowSec() - 60 * 60;
+          orderHistory = orderHistory.filter(o => (o.filled_time_sec || 0) >= oneHourAgo);
           // 同步持久化（追加在前）
           saveHistoryToStorage(currentSymbol);
           delete trackedOrders[key];
@@ -511,56 +488,6 @@
       return res;
     }
 
-    function renderRealtimeKPIs() {
-      const activeBids = Object.values(trackedOrders).filter(o => o.status === '挂单中' && (o.side || '').includes('买'));
-      const activeAsks = Object.values(trackedOrders).filter(o => o.status === '挂单中' && (o.side || '').includes('卖'));
-      const totalBidQty = activeBids.reduce((s, o) => s + (Number(o.qty) || 0), 0);
-      const totalAskQty = activeAsks.reduce((s, o) => s + (Number(o.qty) || 0), 0);
-      const totalBidVal = activeBids.reduce((s, o) => s + (Number(o.qty) * Number(o.price) || 0), 0);
-      const totalAskVal = activeAsks.reduce((s, o) => s + (Number(o.qty) * Number(o.price) || 0), 0);
-
-      // 最大单笔 & 平均价（可选展示在文本中）
-      const maxBid = activeBids.length ? activeBids.reduce((a, b) => (a.qty >= b.qty ? a : b)) : null;
-      const maxAsk = activeAsks.length ? activeAsks.reduce((a, b) => (a.qty >= b.qty ? a : b)) : null;
-      const avgBid = activeBids.length ? activeBids.reduce((s, o) => s + Number(o.price), 0) / activeBids.length : 0;
-      const avgAsk = activeAsks.length ? activeAsks.reduce((s, o) => s + Number(o.price), 0) / activeAsks.length : 0;
-
-      elKpiBid.textContent = `${activeBids.length} / ${fmt(totalBidQty)} / $${fmt(totalBidVal)}${maxBid ? ` | 最大 ${fmt(maxBid.qty)} @ $${fmt(maxBid.price)} | 均价 $${fmt(avgBid)}` : ''}`;
-      elKpiAsk.textContent = `${activeAsks.length} / ${fmt(totalAskQty)} / $${fmt(totalAskVal)}${maxAsk ? ` | 最大 ${fmt(maxAsk.qty)} @ $${fmt(maxAsk.price)} | 均价 $${fmt(avgAsk)}` : ''}`;
-
-      if (totalBidQty > 0 && totalAskQty > 0) {
-        const qtyRatio = totalBidQty / totalAskQty;
-        elKpiQtyRatio.textContent = `${fmt(qtyRatio, 2)} : 1`;
-        if (qtyRatio > 1.5) setBadge('buy', '🔴 买盘占优');
-        else if (qtyRatio < 0.67) setBadge('sell', '🟢 卖盘占优');
-        else setBadge('neutral', '⚖️ 基本均衡');
-      } else {
-        elKpiQtyRatio.textContent = '-';
-        setBadge('neutral', '⚖️ 基本均衡');
-      }
-
-      if (totalBidVal > 0 && totalAskVal > 0) {
-        const valRatio = totalBidVal / totalAskVal;
-        elKpiValRatio.textContent = `${fmt(valRatio, 2)} : 1`;
-      } else {
-        elKpiValRatio.textContent = '-';
-      }
-
-      // 记录简易趋势历史
-      statsHistory.push({ t: nowSec(), bidQty: totalBidQty, askQty: totalAskQty });
-      if (statsHistory.length > MAX_STATS_HISTORY) statsHistory.shift();
-
-      // 渲染列表：买单墙/卖单墙
-      const byPriceDesc = [...activeBids].sort((a,b) => b.price - a.price).slice(0, 10);
-      const byPriceAsc  = [...activeAsks].sort((a,b) => a.price - b.price).slice(0, 10);
-      elBidsTbody.innerHTML = byPriceDesc.map(o => `<tr><td>$${fmt(o.price)}</td><td>${fmt(o.qty)}</td><td>${fmt(nowSec() - o.firstSeen, 1)}</td></tr>`).join('');
-      elAsksTbody.innerHTML = byPriceAsc.map(o => `<tr><td>$${fmt(o.price)}</td><td>${fmt(o.qty)}</td><td>${fmt(nowSec() - o.firstSeen, 1)}</td></tr>`).join('');
-    }
-
-    function setBadge(kind, text) {
-      elPowerBadge.className = 'pill ' + (kind === 'buy' ? 'buy' : kind === 'sell' ? 'sell' : 'neutral');
-      elPowerBadge.textContent = text;
-    }
 
     function renderWindowsAgg() {
       const agg = aggregateWindows();
@@ -598,25 +525,8 @@
       }
     }
 
-    function renderHistory() {
-      const rows = orderHistory.slice(0, MAX_HISTORY_DISPLAY).map((o, i) => {
-        return `<tr>
-          <td>${i+1}</td>
-          <td>✅ 已成交</td>
-          <td>${o.side}</td>
-          <td>$${fmt(o.price)}</td>
-          <td>${fmt(o.qty)}</td>
-          <td>${o.filled_time}</td>
-          <td>${fmt(o.duration, 1)}</td>
-        </tr>`;
-      }).join('');
-      elHistoryTbody.innerHTML = rows;
-    }
-
     function renderAll(ctx) {
-      renderRealtimeKPIs();
       renderWindowsAgg();
-      renderHistory();
     }
 
 
